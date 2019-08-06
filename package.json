@@ -1,0 +1,43 @@
+{
+  "name": "@liquid-labs/lc-authorizations-model",
+  "version": "1.0.0-alpha.0",
+  "description": "General purpose authorizations model in Go for Liquid Code + compatible projects.",
+  "main": "index.js",
+  "scripts": {
+    "prebuild": "rm -rf ./dist/* && mkdir -p ./dist",
+    "build": "catalyst-scripts build",
+    "pretest": "catalyst-scripts pretest",
+    "test": "catalyst-scripts test",
+    "lint": "catalyst-scripts lint",
+    "lint-fix": "catalyst-scripts lint-fix",
+    "postversion": "git push && git push --tags"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Liquid-Labs/lc-authorizations-model.git"
+  },
+  "author": "Zane Rockenbaugh <zane@liquid-labs.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Liquid-Labs/lc-authorizations-model/issues"
+  },
+  "homepage": "https://github.com/Liquid-Labs/lc-authorizations-model#readme",
+  "catalyst": {
+    "requires": [
+      {
+        "iface": "sql",
+        "params-req": [],
+        "params-opt": [],
+        "config-const": []
+      }
+    ]
+  },
+  "dependencies": {
+    "@liquid-labs/lc-entities-model": "^1.0.0-alpha.0",
+    "@liquid-labs/lc-users-model": "^1.0.0-alpha.0"
+  },
+  "devDependencies": {
+    "@liquid-labs/catalyst-scripts": "^1.0.0-alpha.22",
+    "@liquid-labs/liquid-dev-cloudsql": "^1.0.0-prototype.0"
+  }
+}

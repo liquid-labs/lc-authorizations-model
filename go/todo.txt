@@ -1,6 +1,0 @@
-v 1) Create new 'lc-authentication-api' to replace 'catalyst-firewrap'
-v 2) Move the context setting handler from 'catalyst-core-api' to 'lc-authentication-api'
-v 3) Place user AZN ID and claims on context; provide interface for accessing
-v 4) Add 'User Groups' to the users model. This allows us to check for subject-group grants via user groups. Create 'grantables' table and have users and user_groups ref that. Then update subject constraint to point to grantables.
-
-Now the caps/grants functions can access the AZN ID and claims from the context

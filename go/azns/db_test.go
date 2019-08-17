@@ -1,7 +1,7 @@
 package azns_test
 
 import (
-  "log"
+  // "log"
   "math/rand"
   "os"
   "testing"
@@ -34,8 +34,6 @@ func (tt *TestThing) GetResourceName() ResourceName {
 }
 
 const (
-  name = `John Doe`
-  desc = `desc`
   legalID = `555-55-5555`
   legalIDType = `SSN`
   active = true
@@ -61,18 +59,32 @@ type GrantIntegrationSuite struct {
   suite.Suite
   User1  *User
   Thing1 *Entity
+  User2  *User
+  Thing2 *Entity
 }
 func (s *GrantIntegrationSuite) SetupSuite() {
   db := rdb.Connect()
 
-  authID := randStringBytes()
-  s.User1 = NewUser(&TestUser{}, name, desc, authID, legalID, legalIDType, active)
+  authID1 := randStringBytes()
+  s.User1 = NewUser(&TestUser{}, `User1`, ``, authID1, legalID, legalIDType, active)
   require.NoError(s.T(), s.User1.Create(db))
   // log.Printf("User1: %s", s.User1.GetID())
 
-  s.Thing1 = NewEntity(&TestThing{}, name, desc, s.User1.GetID(), false)
-  require.NoError(s.T(), db.Insert(s.Thing1))
+  authID2 := randStringBytes()
+  s.User2 = NewUser(&TestUser{}, `User2`, ``, authID2, legalID, legalIDType, active)
+  require.NoError(s.T(), s.User2.Create(db))
+  // log.Printf("User2: %s", s.User2.GetID())
+
+  s.Thing1 = NewEntity(&TestThing{}, `Thing1`, ``, s.User1.GetID(), false)
+  require.NoError(s.T(), s.Thing1.Create(db))
   // log.Printf("Thing1: %s", s.Thing1.GetID())
+
+  s.Thing2 = NewEntity(&TestThing{}, `ThingA`, ``, s.User2.GetID(), false)
+  require.NoError(s.T(), db.Insert(s.Thing2))
+  // log.Printf("Thing2: %s", s.Thing2.GetID())
+
+  g := azns.NewGrant(s.User1.GetID(), azns.AznBasicUpdate.ID, s.Thing2.GetID(), nil)
+  require.NoError(s.T(), db.Insert(g))
 }
 /*func (s *GrantIntegrationSuite) SetupTest() {
 
@@ -91,5 +103,14 @@ func (s *GrantIntegrationSuite) TestCapabilityByOwnership() {
   assert.Equal(s.T(), true, CapResponse.IsGranted())
   assert.Equal(s.T(), azns.JsonB(nil), CapResponse.GetCookie())
   assert.Equal(s.T(), true, CapResponse.IsByOwnership())
-  assert.Equal(s.T(), (*azns.Grant)(nil), CapResponse.GetGrant())
+  assert.Equal(s.T(), false, CapResponse.IsByGrant())
+}
+
+func (s *GrantIntegrationSuite) TestCapabilityByDirectGrant() {
+  CapResponse, err := azns.CheckCapability(s.User1.GetID(), azns.AznBasicUpdate.ID, s.Thing2.GetID(), rdb.Connect())
+  require.NoError(s.T(), err)
+  assert.Equal(s.T(), true, CapResponse.IsGranted())
+  assert.Equal(s.T(), azns.JsonB(nil), CapResponse.GetCookie())
+  assert.Equal(s.T(), false, CapResponse.IsByOwnership())
+  assert.Equal(s.T(), true, CapResponse.IsByGrant())
 }

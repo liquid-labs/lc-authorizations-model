@@ -17,29 +17,24 @@ var ownershipSelect =
       '` + AznRoutePublic.Name + `' AS route_name,
       NULL AS cookie
     FROM entities AS entity
-    WHERE entity.id=? AND entity.owner_id=?`
+    WHERE entity.owner_id=? AND entity.id=?`
 
 var grantSelect =
   `WITH RECURSIVE
-    targs(id) AS (
-        SELECT container_member.id AS id
-          FROM container_members AS container_member
-          WHERE container_member.member=?
-      UNION
-        SELECT container_member.id AS id
-          FROM container_members AS container_member
-            JOIN targs AS targ ON container_member.member=targ.id
-    ),
     subjs(id) AS (
-        SELECT user_group.id AS id
-          FROM user_groups AS user_group
-            JOIN container_members AS container_member ON user_group.id=container_member.id
-          WHERE container_member.member=?
+        SELECT CAST(? AS UUID) AS id
       UNION
         SELECT container_member.id AS id
           FROM container_members AS container_member
             JOIN subjs AS subj ON container_member.member=subj.id
-      )
+    ),
+    targs(id) AS (
+        SELECT CAST(? AS UUID) AS id
+      UNION
+        SELECT container_member.id AS id
+          FROM container_members AS container_member
+            JOIN targs AS targ ON container_member.member=targ.id
+    )
     SELECT
         ` + strconv.Itoa(AznRouteGrant.ID) + ` AS route_id,
         '` + AznRouteGrant.Name + `' AS route_name,
@@ -68,7 +63,7 @@ func CheckCapability(subject EID, aznRef interface{}, target EID, db orm.DB) (*C
   capResult := &capResults{}
   switch t := aznRef.(type) {
   case int:
-    _, err = db.QueryOne(capResult, authSelect, target, subject, target, subject, aznRef.(int))
+    _, err = db.QueryOne(capResult, authSelect, subject, target, subject, target, aznRef.(int))
   default:
     log.Panicf("Invalid azn reference type '%s'.", t)
   }
@@ -83,7 +78,7 @@ func CheckCapability(subject EID, aznRef interface{}, target EID, db orm.DB) (*C
     true,
     capResult.Cookie,
     capResult.RouteID == AznRouteOwner.ID,
-    nil,
+    capResult.RouteID == AznRouteGrant.ID,
   }, nil
 }
 

@@ -1,16 +1,21 @@
 package azns
 
+type AznName string
+
 type Authorization struct {
-  Name string
+  Name AznName
   ID   int
 }
 
-// These mirror the basic inserts.
+// Basic authorizations.
+// * 'create' is resource specific.
+// * 'read-sensitive' is a placeholder for now.
+// * We differentiate between 'archive' (common) and 'delete' (rare).
 var (
-  EntityRead = Authorization{`/entities/read`, 0}
-  EntityReadSensitive = Authorization{`/entities/read-sensitive`, 1}
-  EntityUpdate = Authorization{`/entities/update`, 2}
-  EntityArchive = Authorization{`/entities/archive`, 3}
-  EntityDelete = Authorization{`/entities/delete`, 4}
-  EntityGrant = Authorization{`/entities/grant`, 5}
+  EntityRead = Authorization{`/entities/read`, 1}
+  EntityReadSensitive = Authorization{`/entities/read-sensitive`, 2}
+  EntityUpdate = Authorization{`/entities/update`, 3}
+  EntityArchive = Authorization{`/entities/archive`, 4}
+  EntityDelete = Authorization{`/entities/delete`, 5}
+  EntityGrant = Authorization{`/entities/grant`, 6}
 )

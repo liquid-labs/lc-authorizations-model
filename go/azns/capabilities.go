@@ -11,6 +11,23 @@ import (
   . "github.com/Liquid-Labs/terror/go/terror"
 )
 
+type CapResponse struct {
+  Granted     bool
+  Cookie      JsonB
+  ByOwnership bool
+  ByGrant     bool
+}
+
+func (r *CapResponse) IsGranted() bool { return r.Granted }
+
+func (r *CapResponse) GetCookie() JsonB { return r.Cookie }
+
+func (r *CapResponse) IsByOwnership() bool { return r.ByOwnership }
+
+func (r *CapResponse) IsByGrant() bool { return r.ByGrant }
+
+var NoSuchCapRespose = &CapResponse{false, nil, false, false}
+
 var ownershipSelect =
   `SELECT
       ` + strconv.Itoa(AznRouteOwner.ID) +` AS route_id,

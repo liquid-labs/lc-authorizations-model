@@ -54,20 +54,3 @@ var (
   AznRouteGrant  = AznRoute{3, "grant"}
   AznRouteRoot   = AznRoute{4, "root"}
 )
-
-type CapResponse struct {
-  Granted     bool
-  Cookie      JsonB
-  ByOwnership bool
-  ByGrant     bool
-}
-
-func (r *CapResponse) IsGranted() bool { return r.Granted }
-
-func (r *CapResponse) GetCookie() JsonB { return r.Cookie }
-
-func (r *CapResponse) IsByOwnership() bool { return r.ByOwnership }
-
-func (r *CapResponse) IsByGrant() bool { return r.ByGrant }
-
-var NoSuchCapRespose = &CapResponse{false, nil, false, false}

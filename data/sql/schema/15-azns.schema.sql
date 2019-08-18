@@ -5,7 +5,7 @@ CREATE TABLE azns (
   CONSTRAINT azns_key PRIMARY KEY ( id )
 );
 
-ALTER SEQUENCE azns_id_seq RESTART WITH GREATEST(1000, (SELECT MAX(id) FROM azns));
+ALTER SEQUENCE azns_id_seq RESTART WITH 1000;
 
 CREATE INDEX azns_index_name ON azns ( name );
 

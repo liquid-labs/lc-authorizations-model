@@ -15,6 +15,7 @@ type JsonB *map[string]interface{}
 // ## Grant model
 
 // A Grant is a contingent capability given to a User to act over a target or targets for a specific purpose. E.g., the owner of a document may grant another use the rights to update that document.
+// A grant may contain a 'cookie'. Cookies parameters are evaluated at the service rather than the authorization level and may result in an otherwise authorized action be de-authorized. E.g., a cookie may impose quota or time restrictions on an action.
 type Grant struct {
   ID      int64   `sql:",pk"`
   Subject EID
@@ -23,6 +24,8 @@ type Grant struct {
   Target  EID
   Cookie  JsonB
 }
+
+// TODO: if we get a good UC, we could use cookies to implement negative grants. The lower-level grant will be found first, and the special 'NEGATIVE' or 'RESCEND' cookie checked by the base library.
 
 func NewGrant(subject EID, aznRef interface{}, target EID, cookie JsonB) *Grant {
   switch t := aznRef.(type) {
@@ -61,6 +64,7 @@ func (g *Grant) CreateRaw(db orm.DB) Terror {
 }
 
 func (g *Grant) UpdateRaw(db orm.DB) Terror {
+  // TODO: not quite true; we should allow cookies to be updated. This will require coordination with the schema.
   return MethodNotAllowedError(`Grants cannot be updated, only revoked (deleted).`)
 }
 

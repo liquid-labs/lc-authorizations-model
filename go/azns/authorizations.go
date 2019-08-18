@@ -1,14 +1,21 @@
 package azns
 
+import (
+  "github.com/go-pg/pg/orm"
+
+  . "github.com/Liquid-Labs/terror/go/terror"
+)
+
 type AznName string
 
 type Authorization struct {
-  ID   int
-  Name AznName
+  tableName struct{} `sql:"azns,alias:azn"`
+  ID        int      `sql:",pk"`
+  Name      AznName
 }
 
-func NewAuthorizatio(name AznName) *Authorization {
-  return &Authorization{0, name}
+func NewAuthorization(name AznName) *Authorization {
+  return &Authorization{ID: 0, Name: name}
 }
 
 func (a *Authorization) GetID() int { return a.ID }
@@ -20,15 +27,22 @@ func (a *Authorization) GetName() AznName { return a.Name }
 // * 'read-sensitive' is a placeholder for now.
 // * We differentiate between 'archive' (common) and 'delete' (rare).
 var (
-  AznBasicRead = Authorization{1, AznName(`/entities/read`)}
-  AznBasicReadSensitive = Authorization{2, AznName(`/entities/read-sensitive`)}
-  AznBasicUpdate = Authorization{3, AznName(`/entities/update`)}
-  AznBasicArchive = Authorization{4, AznName(`/entities/archive`)}
-  AznBasicDelete = Authorization{5, AznName(`/entities/delete`)}
-  AznBasicGrant = Authorization{6, AznName(`/entities/grant`)}
+  AznBasicRead = Authorization{ID: 1, Name: AznName(`/entities/read`)}
+  AznBasicReadSensitive = Authorization{
+    ID: 2,
+    Name: AznName(`/entities/read-sensitive`)}
+  AznBasicUpdate = Authorization{ID: 3, Name: AznName(`/entities/update`)}
+  AznBasicArchive = Authorization{ID: 4, Name: AznName(`/entities/archive`)}
+  AznBasicDelete = Authorization{ID: 5, Name: AznName(`/entities/delete`)}
+  AznBasicGrant = Authorization{ID: 6, Name: AznName(`/entities/grant`)}
 )
 
-type JsonB *map[string]interface{}
+func (a *Authorization) CreateRaw(db orm.DB) Terror {
+  if err := db.Insert(a); err != nil {
+    return ServerError(`Problem creating authorization.`, err)
+  }
+  return nil
+}
 
 type AznRoute struct {
   ID   int

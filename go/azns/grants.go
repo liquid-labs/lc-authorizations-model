@@ -9,6 +9,9 @@ import (
   . "github.com/Liquid-Labs/terror/go/terror"
 )
 
+// TODO: can we put this someplace else?
+type JsonB *map[string]interface{}
+
 // ## Grant model
 
 type Grant struct {

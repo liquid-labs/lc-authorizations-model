@@ -20,6 +20,7 @@ github.com/Liquid-Labs/lc-rdb-service v1.0.0-alpha.1 h1:G43nWx1m3VlAVQ1nYlqg8OQm
 github.com/Liquid-Labs/lc-rdb-service v1.0.0-alpha.1/go.mod h1:gxFUZNNALQeg00EX+l81JLGDJX6vvIFfLaKfJzBF+Ms=
 github.com/Liquid-Labs/lc-users-model v1.0.0-alpha.0 h1:nyVbRyybJ6JFopr0OL6hxr1Z2d3FxqZgJ0CCUcws73o=
 github.com/Liquid-Labs/lc-users-model v1.0.0-alpha.0/go.mod h1:aRZhAn4NGnQbkrA1NrL6eEcyr8by7DO/JonQDdSlyHI=
+github.com/Liquid-Labs/strkit v0.0.0-20190818184832-9e3e35dcfc9c h1:gafENUJa+Gs+brz7YHwfgTMlfoAfB9L/SU5KW5p9ec4=
 github.com/Liquid-Labs/strkit v0.0.0-20190818184832-9e3e35dcfc9c/go.mod h1:fyr/0G+VniC6Q0D4mmRaUZBvMhsGmXdJDphCZyYozkY=
 github.com/Liquid-Labs/terror v0.0.0-20190801223730-3f5389af3ff2 h1:8U/guTtnLJN/cU0VDk0hWk0Yxxe499aE9drdaduQDuw=
 github.com/Liquid-Labs/terror v0.0.0-20190801223730-3f5389af3ff2/go.mod h1:MrllZ172GtwBFSm+HOpKcctvbVsN1L7Sul0KgOzw+nY=

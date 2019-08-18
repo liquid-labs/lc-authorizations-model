@@ -1,8 +1,11 @@
 CREATE TABLE azns (
-  id   INT,
+  id   SERIAL,
   name VARCHAR(128) NOT NULL UNIQUE,
+
   CONSTRAINT azns_key PRIMARY KEY ( id )
 );
+
+ALTER SEQUENCE azns_id_seq RESTART WITH GREATEST(1000, (SELECT MAX(id) FROM azns));
 
 CREATE INDEX azns_index_name ON azns ( name );
 

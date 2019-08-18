@@ -2,10 +2,8 @@ package azns_test
 
 import (
   // "log"
-  "math/rand"
   "os"
   "testing"
-  "time"
 
   "github.com/stretchr/testify/assert"
   "github.com/stretchr/testify/require"
@@ -14,6 +12,7 @@ import (
   . "github.com/Liquid-Labs/lc-containers-model/go/containers"
   . "github.com/Liquid-Labs/lc-entities-model/go/entities"
   "github.com/Liquid-Labs/lc-rdb-service/go/rdb"
+  "github.com/Liquid-Labs/strkit/go/strkit"
   "github.com/Liquid-Labs/terror/go/terror"
   . "github.com/Liquid-Labs/lc-users-model/go/users"
 
@@ -28,18 +27,6 @@ const (
 
 func init() {
   terror.EchoErrorLog()
-  rand.Seed(time.Now().UnixNano())
-}
-
-const runes = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_./"
-const aznLength = 16
-
-func randStringBytes() string {
-    b := make([]byte, aznLength)
-    for i := range b {
-        b[i] = runes[rand.Int63() % int64(len(runes))]
-    }
-    return string(b)
 }
 
 type GrantIntegrationSuite struct {
@@ -63,7 +50,7 @@ func (s *GrantIntegrationSuite) SetupSuite() {
   db := rdb.Connect()
 
   // setup base objects
-  authID1 := randStringBytes()
+  authID1 := strkit.RandString(strkit.LettersAndNumbers, 16)
   s.User1 = NewUser(`users`, `User1`, ``, authID1, legalID, legalIDType, active)
   require.NoError(s.T(), s.User1.CreateRaw(db))
   // log.Printf("User1: %s", s.User1.GetID())
@@ -89,7 +76,7 @@ func (s *GrantIntegrationSuite) SetupSuite() {
   require.NoError(s.T(), s.Thing1GroupC.CreateRaw(db))
   // log.Printf("Thing2: %s", s.Thing2Group.GetID())
 
-  authID2 := randStringBytes()
+  authID2 := strkit.RandString(strkit.LettersAndNumbers, 16)
   s.User2 = NewUser(`users`, `User2`, ``, authID2, legalID, legalIDType, active)
   require.NoError(s.T(), s.User2.CreateRaw(db))
   // log.Printf("User2: %s", s.User2.GetID())

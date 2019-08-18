@@ -1,7 +1,7 @@
 package azns_test
 
 import (
-  // "log"
+  "log"
   "math/rand"
   "os"
   "testing"
@@ -19,20 +19,6 @@ import (
 
   /* pkg2test*/ "github.com/Liquid-Labs/lc-authorizations-model/go/azns"
 )
-
-type TestUser struct {
-  User
-}
-func (tu *TestUser) GetResourceName() ResourceName {
-  return ResourceName(`testusers`)
-}
-
-type TestThing struct {
-  Entity
-}
-func (tt *TestThing) GetResourceName() ResourceName {
-  return ResourceName(`things`)
-}
 
 const (
   legalID = `555-55-5555`
@@ -58,46 +44,81 @@ func randStringBytes() string {
 
 type GrantIntegrationSuite struct {
   suite.Suite
-  User1       *User
-  Thing1      *Entity
-  User2       *User
-  Thing2      *Entity
-  Thing1Group *Container
+  User1        *User
+  Thing1A      *Entity
+  Thing1B      *Entity
+  Thing1C      *Entity
+  Thing1GroupA *Container
+  Thing1GroupC *Container
+  User1Group   *azns.UserGroup
+  User2        *User
+  Thing2       *Entity
 }
+// SetupSuite sets up the following capabilities:
+//
+// * User1 owns Thing1, Thing1Group, and User1Group
+// * User2 owns Thing2
+// * User1 has direct rights over Thing2
 func (s *GrantIntegrationSuite) SetupSuite() {
   db := rdb.Connect()
 
+  // setup base objects
   authID1 := randStringBytes()
-  s.User1 = NewUser(&TestUser{}, `User1`, ``, authID1, legalID, legalIDType, active)
-  require.NoError(s.T(), s.User1.Create(db))
+  s.User1 = NewUser(`users`, `User1`, ``, authID1, legalID, legalIDType, active)
+  require.NoError(s.T(), s.User1.CreateRaw(db))
   // log.Printf("User1: %s", s.User1.GetID())
-
-  authID2 := randStringBytes()
-  s.User2 = NewUser(&TestUser{}, `User2`, ``, authID2, legalID, legalIDType, active)
-  require.NoError(s.T(), s.User2.Create(db))
-  // log.Printf("User2: %s", s.User2.GetID())
-
-  s.Thing1 = NewEntity(&TestThing{}, `Thing1`, ``, s.User1.GetID(), false)
-  require.NoError(s.T(), s.Thing1.Create(db))
-  // log.Printf("Thing1: %s", s.Thing1.GetID())
-
-  s.Thing2 = NewEntity(&TestThing{}, `ThingA`, ``, s.User2.GetID(), false)
-  require.NoError(s.T(), db.Insert(s.Thing2))
+  s.Thing1A = NewEntity(`entities`, `Thing1A`, ``, s.User1.GetID(), false)
+  require.NoError(s.T(), CreateEntityRaw(s.Thing1A, db))
   // log.Printf("Thing2: %s", s.Thing2.GetID())
-
-  g1 := azns.NewGrant(s.User1.GetID(), azns.AznBasicUpdate.ID, s.Thing2.GetID(), nil)
-  require.NoError(s.T(), db.Insert(g1))
-
-  s.Thing1Group = &Container{Entity:Entity{ResourceName: `containers`, Name:`Thing1Group`}, Members:[]*Entity{s.Thing1}}
-  require.NoError(s.T(), s.Thing1Group.Create(db))
+  s.Thing1B = NewEntity(`entities`, `Thing1B`, ``, s.User1.GetID(), false)
+  require.NoError(s.T(), CreateEntityRaw(s.Thing1B, db))
+  // log.Printf("Thing2B: %s", s.Thing2B.GetID())
+  s.Thing1C = NewEntity(`entities`, `Thing1C`, ``, s.User1.GetID(), false)
+  require.NoError(s.T(), CreateEntityRaw(s.Thing1C, db))
+  // log.Printf("Thing2B: %s", s.Thing2B.GetID())
+  s.Thing1GroupA = &Container{
+    Entity:Entity{ResourceName: `containers`, Name:`Thing1GroupA`, OwnerID:s.User1.GetID()},
+    Members:[]*Entity{s.Thing1A},
+  }
+  require.NoError(s.T(), s.Thing1GroupA.CreateRaw(db))
+  // log.Printf("Thing2: %s", s.Thing2Group.GetID())
+  s.Thing1GroupC = &Container{
+    Entity:Entity{ResourceName: `containers`, Name:`Thing1GroupC`, OwnerID:s.User1.GetID()},
+    Members:[]*Entity{s.Thing1C},
+  }
+  require.NoError(s.T(), s.Thing1GroupC.CreateRaw(db))
   // log.Printf("Thing2: %s", s.Thing2Group.GetID())
 
-  g2 := azns.NewGrant(s.User2.GetID(), azns.AznBasicUpdate.ID, s.Thing1Group.GetID(), nil)
-  require.NoError(s.T(), db.Insert(g2))
-}
-/*func (s *GrantIntegrationSuite) SetupTest() {
+  authID2 := randStringBytes()
+  s.User2 = NewUser(`users`, `User2`, ``, authID2, legalID, legalIDType, active)
+  require.NoError(s.T(), s.User2.CreateRaw(db))
+  // log.Printf("User2: %s", s.User2.GetID())
 
-}*/
+  s.User1Group = &azns.UserGroup{
+    Container:Container{
+      Entity:Entity{ResourceName: `containers`, Name:`User1Group`, OwnerID:s.User1.GetID()},
+      Members:[]*Entity{&s.User2.Entity},
+    },
+  }
+  require.NoError(s.T(), s.User1Group.CreateRaw(db))
+  // log.Printf("Thing2: %s", s.Thing2Group.GetID())
+
+  s.Thing2 = NewEntity(`entities`, `Thing2`, ``, s.User2.GetID(), false)
+  require.NoError(s.T(), CreateEntityRaw(s.Thing2, db))
+  // log.Printf("Thing1: %s", s.Thing1.GetID())
+
+  grants := []*azns.Grant{
+    /* U1 > T2 */ azns.NewGrant(s.User1.GetID(), azns.AznBasicUpdate.ID, s.Thing2.GetID(), nil),
+    /* (U2 > T1GA) > T1A */ azns.NewGrant(s.User2.GetID(), azns.AznBasicUpdate.ID, s.Thing1GroupA.GetID(), nil),
+    /* U2 > (U1G > T1B) */ azns.NewGrant(s.User1Group.GetID(), azns.AznBasicUpdate.ID, s.Thing1B.GetID(), nil),
+    /* U2 > (U1G > T1GC) > T1C */ azns.NewGrant(s.User1Group.GetID(), azns.AznBasicUpdate.ID, s.Thing1GroupC.GetID(), nil),
+  }
+  for i, g := range grants {
+    log.Printf("doing %d\n\n", i)
+    require.NoError(s.T(), g.CreateRaw(db))
+  }
+}
+
 func TestGrantIntegrationSuite(t *testing.T) {
   if os.Getenv(`SKIP_INTEGRATION`) == `true` {
     t.Skip()
@@ -107,7 +128,7 @@ func TestGrantIntegrationSuite(t *testing.T) {
 }
 
 func (s *GrantIntegrationSuite) TestCapabilityByOwnership() {
-  CapResponse, err := azns.CheckCapability(s.User1.GetID(), azns.AznBasicUpdate.ID, s.Thing1.GetID(), rdb.Connect())
+  CapResponse, err := azns.CheckCapability(s.User1.GetID(), azns.AznBasicUpdate.ID, s.Thing1A.GetID(), rdb.Connect())
   require.NoError(s.T(), err)
   assert.Equal(s.T(), true, CapResponse.IsGranted())
   assert.Equal(s.T(), azns.JsonB(nil), CapResponse.GetCookie())
@@ -125,7 +146,25 @@ func (s *GrantIntegrationSuite) TestCapabilityByDirectGrant() {
 }
 
 func (s *GrantIntegrationSuite) TestCapabilityByIndirectTargetGrant() {
-  CapResponse, err := azns.CheckCapability(s.User2.GetID(), azns.AznBasicUpdate.ID, s.Thing1.GetID(), rdb.Connect())
+  CapResponse, err := azns.CheckCapability(s.User2.GetID(), azns.AznBasicUpdate.ID, s.Thing1A.GetID(), rdb.Connect())
+  require.NoError(s.T(), err)
+  assert.Equal(s.T(), true, CapResponse.IsGranted())
+  assert.Equal(s.T(), azns.JsonB(nil), CapResponse.GetCookie())
+  assert.Equal(s.T(), false, CapResponse.IsByOwnership())
+  assert.Equal(s.T(), true, CapResponse.IsByGrant())
+}
+
+func (s *GrantIntegrationSuite) TestCapabilityByIndirectSubjectGrant() {
+  CapResponse, err := azns.CheckCapability(s.User2.GetID(), azns.AznBasicUpdate.ID, s.Thing1B.GetID(), rdb.Connect())
+  require.NoError(s.T(), err)
+  assert.Equal(s.T(), true, CapResponse.IsGranted())
+  assert.Equal(s.T(), azns.JsonB(nil), CapResponse.GetCookie())
+  assert.Equal(s.T(), false, CapResponse.IsByOwnership())
+  assert.Equal(s.T(), true, CapResponse.IsByGrant())
+}
+
+func (s *GrantIntegrationSuite) TestCapabilityByDoubleIndirectGrant() {
+  CapResponse, err := azns.CheckCapability(s.User2.GetID(), azns.AznBasicUpdate.ID, s.Thing1C.GetID(), rdb.Connect())
   require.NoError(s.T(), err)
   assert.Equal(s.T(), true, CapResponse.IsGranted())
   assert.Equal(s.T(), azns.JsonB(nil), CapResponse.GetCookie())

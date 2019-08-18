@@ -11,6 +11,7 @@ import (
   "github.com/stretchr/testify/require"
   "github.com/stretchr/testify/suite"
 
+  . "github.com/Liquid-Labs/lc-containers-model/go/containers"
   . "github.com/Liquid-Labs/lc-entities-model/go/entities"
   "github.com/Liquid-Labs/lc-rdb-service/go/rdb"
   "github.com/Liquid-Labs/terror/go/terror"
@@ -57,10 +58,11 @@ func randStringBytes() string {
 
 type GrantIntegrationSuite struct {
   suite.Suite
-  User1  *User
-  Thing1 *Entity
-  User2  *User
-  Thing2 *Entity
+  User1       *User
+  Thing1      *Entity
+  User2       *User
+  Thing2      *Entity
+  Thing1Group *Container
 }
 func (s *GrantIntegrationSuite) SetupSuite() {
   db := rdb.Connect()
@@ -83,8 +85,15 @@ func (s *GrantIntegrationSuite) SetupSuite() {
   require.NoError(s.T(), db.Insert(s.Thing2))
   // log.Printf("Thing2: %s", s.Thing2.GetID())
 
-  g := azns.NewGrant(s.User1.GetID(), azns.AznBasicUpdate.ID, s.Thing2.GetID(), nil)
-  require.NoError(s.T(), db.Insert(g))
+  g1 := azns.NewGrant(s.User1.GetID(), azns.AznBasicUpdate.ID, s.Thing2.GetID(), nil)
+  require.NoError(s.T(), db.Insert(g1))
+
+  s.Thing1Group = &Container{Entity:Entity{ResourceName: `containers`, Name:`Thing1Group`}, Members:[]*Entity{s.Thing1}}
+  require.NoError(s.T(), s.Thing1Group.Create(db))
+  // log.Printf("Thing2: %s", s.Thing2Group.GetID())
+
+  g2 := azns.NewGrant(s.User2.GetID(), azns.AznBasicUpdate.ID, s.Thing1Group.GetID(), nil)
+  require.NoError(s.T(), db.Insert(g2))
 }
 /*func (s *GrantIntegrationSuite) SetupTest() {
 
@@ -108,6 +117,15 @@ func (s *GrantIntegrationSuite) TestCapabilityByOwnership() {
 
 func (s *GrantIntegrationSuite) TestCapabilityByDirectGrant() {
   CapResponse, err := azns.CheckCapability(s.User1.GetID(), azns.AznBasicUpdate.ID, s.Thing2.GetID(), rdb.Connect())
+  require.NoError(s.T(), err)
+  assert.Equal(s.T(), true, CapResponse.IsGranted())
+  assert.Equal(s.T(), azns.JsonB(nil), CapResponse.GetCookie())
+  assert.Equal(s.T(), false, CapResponse.IsByOwnership())
+  assert.Equal(s.T(), true, CapResponse.IsByGrant())
+}
+
+func (s *GrantIntegrationSuite) TestCapabilityByIndirectTargetGrant() {
+  CapResponse, err := azns.CheckCapability(s.User2.GetID(), azns.AznBasicUpdate.ID, s.Thing1.GetID(), rdb.Connect())
   require.NoError(s.T(), err)
   assert.Equal(s.T(), true, CapResponse.IsGranted())
   assert.Equal(s.T(), azns.JsonB(nil), CapResponse.GetCookie())

@@ -11,6 +11,8 @@ github.com/Liquid-Labs/env v1.0.0-beta.0 h1:+iCsCEA6WdsdMM93sVgQid+GoSa+zUYtRpaw
 github.com/Liquid-Labs/env v1.0.0-beta.0/go.mod h1:/HI+vw7AFx3YD4lhxIkJ9dpYIyVXiScIKBNiudpWmtI=
 github.com/Liquid-Labs/go-rest v1.0.0-prototype.4 h1:htv8xLxqlbPibDJL6gUKgALeRkayHlUh3xpBCKpb0Yc=
 github.com/Liquid-Labs/go-rest v1.0.0-prototype.4/go.mod h1:zWdbB8g29fPWLq4dqand77+oFHAPWiJYrRVatWWa8mg=
+github.com/Liquid-Labs/lc-containers-model v0.0.0-20190818011142-594fc04ecdf1 h1:Mwj/YeI5Cx3rCVA+z9j1EK6qxIbzz9MDUgPAdkSa7oI=
+github.com/Liquid-Labs/lc-containers-model v0.0.0-20190818011142-594fc04ecdf1/go.mod h1:7ZS4zK3LHHoTGG9CWw58IEFqK1aByp9ToKjPweBIgDA=
 github.com/Liquid-Labs/lc-rdb-service v1.0.0-alpha.1 h1:G43nWx1m3VlAVQ1nYlqg8OQmnqvEcVeC6H236LquW3Q=
 github.com/Liquid-Labs/lc-rdb-service v1.0.0-alpha.1/go.mod h1:gxFUZNNALQeg00EX+l81JLGDJX6vvIFfLaKfJzBF+Ms=
 github.com/Liquid-Labs/lc-users-model v1.0.0-alpha.0 h1:nyVbRyybJ6JFopr0OL6hxr1Z2d3FxqZgJ0CCUcws73o=

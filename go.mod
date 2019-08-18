@@ -4,6 +4,7 @@ require (
 	firebase.google.com/go v3.9.0+incompatible
 	github.com/Liquid-Labs/go-rest v1.0.0-prototype.4
 	github.com/Liquid-Labs/lc-authentication-api v0.0.0-20190812225013-10df0f6f9995
+	github.com/Liquid-Labs/lc-containers-model v0.0.0-20190818011142-594fc04ecdf1
 	github.com/Liquid-Labs/lc-entities-model v1.0.0-alpha.0
 	github.com/Liquid-Labs/lc-rdb-service v1.0.0-alpha.1
 	github.com/Liquid-Labs/lc-users-model v1.0.0-alpha.0
@@ -23,3 +24,5 @@ replace github.com/Liquid-Labs/lc-rdb-service => ../lc-rdb-service
 replace github.com/Liquid-Labs/lc-users-model => ../lc-users-model
 
 replace github.com/Liquid-Labs/terror => ../terror
+
+replace github.com/Liquid-Labs/lc-containers-model => ../lc-containers-model

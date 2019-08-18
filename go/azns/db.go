@@ -24,14 +24,14 @@ var grantSelect =
     subjs(id) AS (
         SELECT CAST(? AS UUID) AS id
       UNION
-        SELECT container_member.id AS id
+        SELECT container_member.container_id AS id
           FROM container_members AS container_member
             JOIN subjs AS subj ON container_member.member=subj.id
     ),
     targs(id) AS (
         SELECT CAST(? AS UUID) AS id
       UNION
-        SELECT container_member.id AS id
+        SELECT container_member.container_id AS id
           FROM container_members AS container_member
             JOIN targs AS targ ON container_member.member=targ.id
     )

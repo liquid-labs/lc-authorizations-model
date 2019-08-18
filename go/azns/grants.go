@@ -14,6 +14,7 @@ type JsonB *map[string]interface{}
 
 // ## Grant model
 
+// A Grant is a contingent capability given to a User to act over a target or targets for a specific purpose. E.g., the owner of a document may grant another use the rights to update that document.
 type Grant struct {
   ID      int64   `sql:",pk"`
   Subject EID

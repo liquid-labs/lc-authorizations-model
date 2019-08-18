@@ -1,7 +1,7 @@
 package azns_test
 
 import (
-  "log"
+  // "log"
   "math/rand"
   "os"
   "testing"
@@ -113,10 +113,7 @@ func (s *GrantIntegrationSuite) SetupSuite() {
     /* U2 > (U1G > T1B) */ azns.NewGrant(s.User1Group.GetID(), azns.AznBasicUpdate.ID, s.Thing1B.GetID(), nil),
     /* U2 > (U1G > T1GC) > T1C */ azns.NewGrant(s.User1Group.GetID(), azns.AznBasicUpdate.ID, s.Thing1GroupC.GetID(), nil),
   }
-  for i, g := range grants {
-    log.Printf("doing %d\n\n", i)
-    require.NoError(s.T(), g.CreateRaw(db))
-  }
+  for _, g := range grants { require.NoError(s.T(), g.CreateRaw(db)) }
 }
 
 func TestGrantIntegrationSuite(t *testing.T) {

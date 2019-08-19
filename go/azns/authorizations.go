@@ -27,14 +27,14 @@ func (a *Authorization) GetName() AznName { return a.Name }
 // * 'read-sensitive' is a placeholder for now.
 // * We differentiate between 'archive' (common) and 'delete' (rare).
 var (
-  AznBasicRead = Authorization{ID: 1, Name: AznName(`/entities/read`)}
+  AznBasicRead = &Authorization{ID: 1, Name: AznName(`/entities/read`)}
   AznBasicReadSensitive = Authorization{
     ID: 2,
     Name: AznName(`/entities/read-sensitive`)}
-  AznBasicUpdate = Authorization{ID: 3, Name: AznName(`/entities/update`)}
-  AznBasicArchive = Authorization{ID: 4, Name: AznName(`/entities/archive`)}
-  AznBasicDelete = Authorization{ID: 5, Name: AznName(`/entities/delete`)}
-  AznBasicGrant = Authorization{ID: 6, Name: AznName(`/entities/grant`)}
+  AznBasicUpdate = &Authorization{ID: 3, Name: AznName(`/entities/update`)}
+  AznBasicArchive = &Authorization{ID: 4, Name: AznName(`/entities/archive`)}
+  AznBasicDelete = &Authorization{ID: 5, Name: AznName(`/entities/delete`)}
+  AznBasicGrant = &Authorization{ID: 6, Name: AznName(`/entities/grant`)}
 )
 
 func (a *Authorization) CreateRaw(db orm.DB) Terror {

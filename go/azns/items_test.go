@@ -11,6 +11,7 @@ import (
   "github.com/stretchr/testify/suite"
 
   "github.com/Liquid-Labs/lc-authentication-api/go/auth"
+  . "github.com/Liquid-Labs/lc-containers-model/go/containers"
   . "github.com/Liquid-Labs/lc-entities-model/go/entities"
   "github.com/Liquid-Labs/lc-rdb-service/go/rdb"
   . "github.com/Liquid-Labs/lc-users-model/go/users"
@@ -44,69 +45,56 @@ func (s *ItemsIntegrationSuite) SetupSuite() {
     require.NoError(s.T(), CreateEntityRaw(thing, db))
   }
 
-
-  // ensure there's something that shouldn't show up in any selects
+  // other stuff we don't own
   otherAuthID := strkit.RandString(strkit.LettersAndNumbers, 16)
   otherUser := NewUser(`users`, `Other user`, ``, otherAuthID, `444-55-5555`, `SSN`, true)
   require.NoError(s.T(), otherUser.CreateRaw(db))
   // log.Printf("Other user: %s", s.User.GetID())
-  otherThing := NewEntity(`entities`, `Other thing`, ``, otherUser.GetID(), false)
-  require.NoError(s.T(), CreateEntityRaw(otherThing, db))
+
+  ungranted := NewEntity(`entities`, `Other Thing No Grant`, ``, otherUser.GetID(), false)
+  require.NoError(s.T(), CreateEntityRaw(ungranted, db))
+
+  directThing := NewEntity(`entities`, `Other Thing Direct Grant`, ``, otherUser.GetID(), false)
+  require.NoError(s.T(), CreateEntityRaw(directThing, db))
+  directGrant := azns.NewGrant(s.User.GetID(), azns.AznBasicRead.ID, directThing.GetID(), nil)
+  require.NoError(s.T(), directGrant.CreateRaw(db))
+
+  containedThing := NewEntity(`entities`, `Other Thing in Container`, ``, otherUser.GetID(), false)
+  require.NoError(s.T(), CreateEntityRaw(containedThing, db))
+  thingGroup := &Container{
+    Entity:Entity{ResourceName: `containers`, Name:`Thing Group`, OwnerID:otherUser.GetID()},
+    Members:[]*Entity{containedThing},
+  }
+  require.NoError(s.T(), thingGroup.CreateRaw(db))
+  containedGrant := azns.NewGrant(s.User.GetID(), azns.AznBasicRead.ID, thingGroup.GetID(), nil)
+  require.NoError(s.T(), containedGrant.CreateRaw(db))
+
+  userGroup := &azns.UserGroup{
+    Container:Container{
+      Entity:Entity{ResourceName: `containers`, Name:`User Group`, OwnerID:otherUser.GetID()},
+      Members:[]*Entity{&s.User.Entity},
+    },
+  }
+  require.NoError(s.T(), userGroup.CreateRaw(db))
+  userThing := NewEntity(`entities`, `Other Thing User Grant`, ``, otherUser.GetID(), false)
+  require.NoError(s.T(), CreateEntityRaw(userThing, db))
+  userGrant := azns.NewGrant(userGroup.GetID(), azns.AznBasicRead.ID, userThing.GetID(), nil)
+  require.NoError(s.T(), userGrant.CreateRaw(db))
+
+  doubleThing := NewEntity(`entities`, `Other User Thing in Container`, ``, otherUser.GetID(), false)
+  require.NoError(s.T(), CreateEntityRaw(doubleThing, db))
+  doubleGroup := &Container{
+    Entity:Entity{ResourceName: `containers`, Name:`Double Group`, OwnerID:otherUser.GetID()},
+    Members:[]*Entity{doubleThing},
+  }
+  require.NoError(s.T(), doubleGroup.CreateRaw(db))
+  doubleGrant := azns.NewGrant(userGroup.GetID(), azns.AznBasicRead.ID, doubleGroup.GetID(), nil)
+  require.NoError(s.T(), doubleGrant.CreateRaw(db))
 
   ctx := context.Background()
   authenticator := &auth.Authenticator{}
   authenticator.SetAznID(authID)
   s.CTX = context.WithValue(ctx, auth.AuthenticatorKey, authenticator)
-
-  /*
-  s.Thing1A = NewEntity(`entities`, `Thing1A`, ``, s.User1.GetID(), false)
-  require.NoError(s.T(), CreateEntityRaw(s.Thing1A, db))
-  // log.Printf("Thing2: %s", s.Thing2.GetID())
-  s.Thing1B = NewEntity(`entities`, `Thing1B`, ``, s.User1.GetID(), false)
-  require.NoError(s.T(), CreateEntityRaw(s.Thing1B, db))
-  // log.Printf("Thing2B: %s", s.Thing2B.GetID())
-  s.Thing1C = NewEntity(`entities`, `Thing1C`, ``, s.User1.GetID(), false)
-  require.NoError(s.T(), CreateEntityRaw(s.Thing1C, db))
-  // log.Printf("Thing2B: %s", s.Thing2B.GetID())
-  s.Thing1GroupA = &Container{
-    Entity:Entity{ResourceName: `containers`, Name:`Thing1GroupA`, OwnerID:s.User1.GetID()},
-    Members:[]*Entity{s.Thing1A},
-  }
-  require.NoError(s.T(), s.Thing1GroupA.CreateRaw(db))
-  // log.Printf("Thing2: %s", s.Thing2Group.GetID())
-  s.Thing1GroupC = &Container{
-    Entity:Entity{ResourceName: `containers`, Name:`Thing1GroupC`, OwnerID:s.User1.GetID()},
-    Members:[]*Entity{s.Thing1C},
-  }
-  require.NoError(s.T(), s.Thing1GroupC.CreateRaw(db))
-  // log.Printf("Thing2: %s", s.Thing2Group.GetID())
-
-  authID2 := strkit.RandString(strkit.LettersAndNumbers, 16)
-  s.User2 = NewUser(`users`, `User2`, ``, authID2, legalID, legalIDType, active)
-  require.NoError(s.T(), s.User2.CreateRaw(db))
-  // log.Printf("User2: %s", s.User2.GetID())
-
-  s.User1Group = &azns.UserGroup{
-    Container:Container{
-      Entity:Entity{ResourceName: `containers`, Name:`User1Group`, OwnerID:s.User1.GetID()},
-      Members:[]*Entity{&s.User2.Entity},
-    },
-  }
-  require.NoError(s.T(), s.User1Group.CreateRaw(db))
-  // log.Printf("Thing2: %s", s.Thing2Group.GetID())
-
-  s.Thing2 = NewEntity(`entities`, `Thing2`, ``, s.User2.GetID(), false)
-  require.NoError(s.T(), CreateEntityRaw(s.Thing2, db))
-  // log.Printf("Thing1: %s", s.Thing1.GetID())
-
-  grants := []*azns.Grant{*/
-    ///* U1 > T2 */ azns.NewGrant(s.User1.GetID(), azns.AznBasicUpdate.ID, s.Thing2.GetID(), nil),
-    //* (U2 > T1GA) > T1A */ azns.NewGrant(s.User2.GetID(), azns.AznBasicUpdate.ID, s.Thing1GroupA.GetID(), nil),
-    //* U2 > (U1G > T1B) */ azns.NewGrant(s.User1Group.GetID(), azns.AznBasicUpdate.ID, s.Thing1B.GetID(), nil),
-    //* U2 > (U1G > T1GC) > T1C */ azns.NewGrant(s.User1Group.GetID(), azns.AznBasicUpdate.ID, s.Thing1GroupC.GetID(), nil),
-    /*
-  }
-  for _, g := range grants { require.NoError(s.T(), g.CreateRaw(db)) }*/
 }
 
 func TestItemsIntegrationSuite(t *testing.T) {
@@ -128,4 +116,21 @@ func (s *ItemsIntegrationSuite) TestListOwnedItems() {
   assert.Equal(s.T(), 5, len(things))
   assert.Equal(s.T(), `Thing 01`, things[0].GetName())
   assert.Equal(s.T(), `Thing 05`, things[4].GetName())
+}
+
+func (s *ItemsIntegrationSuite) TestListSharedItems() {
+  items := make([]Entity, 0)
+  count, err := azns.ListSharedItemsQuery(&items, rdb.Connect(), azns.PageRequest{0, 3}, s.CTX)
+  require.NoError(s.T(), err)
+  assert.Equal(s.T(), 6, count)
+  assert.Equal(s.T(), 3, len(items))
+  assert.Equal(s.T(), `Double Group`, items[0].GetName())
+  assert.Equal(s.T(), `Other Thing in Container`, items[2].GetName())
+
+  count, err = azns.ListSharedItemsQuery(&items, rdb.Connect(), azns.PageRequest{1, 3}, s.CTX)
+  require.NoError(s.T(), err)
+  assert.Equal(s.T(), 6, count)
+  assert.Equal(s.T(), 3, len(items))
+  assert.Equal(s.T(), `Other Thing User Grant`, items[0].GetName())
+  assert.Equal(s.T(), `Thing Group`, items[2].GetName())
 }

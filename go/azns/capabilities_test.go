@@ -31,21 +31,27 @@ func init() {
 
 type GrantIntegrationSuite struct {
   suite.Suite
-  User1        *User
-  Thing1A      *Entity
-  Thing1B      *Entity
-  Thing1C      *Entity
-  Thing1GroupA *Container
-  Thing1GroupC *Container
-  User1Group   *azns.UserGroup
-  User2        *User
-  Thing2       *Entity
+  User1            *User
+  Thing1A          *Entity
+  Thing1B          *Entity
+  Thing1C          *Entity
+  Thing1Outer      *Entity
+  Thing1GroupA     *Container
+  Thing1GroupC     *Container
+  Thing1GroupOuter *Container
+  User1Group       *azns.UserGroup
+  User2            *User
+  Thing2           *Entity
 }
 // SetupSuite sets up the following capabilities:
 //
-// * User1 owns Thing1, Thing1Group, and User1Group
+// * User1 owns Thing1, Thing1Outer, Thing1GroupA & C, Thing1GroupOuter, and User1Group
 // * User2 owns Thing2
-// * User1 has direct rights over Thing2
+// * User1 has direct grant over Thing2
+// * User2 has grant over Thing1GroupA containing Thing1A
+// * User2 in is User1Group with grant Thing1B
+// * User2 in is User1Group with grant Thing1GroupC containing Thing1C
+// * Thing1GroupOuter contains Thing1Outer, Thing1A, Thing1B, Thing1C, Thing1GroupA, and Thing1GroupC.
 func (s *GrantIntegrationSuite) SetupSuite() {
   db := rdb.Connect()
 
@@ -62,6 +68,8 @@ func (s *GrantIntegrationSuite) SetupSuite() {
   // log.Printf("Thing2B: %s", s.Thing2B.GetID())
   s.Thing1C = NewEntity(`entities`, `Thing1C`, ``, s.User1.GetID(), false)
   require.NoError(s.T(), CreateEntityRaw(s.Thing1C, db))
+  s.Thing1Outer = NewEntity(`entities`, `Thing1Outer`, ``, s.User1.GetID(), false)
+  require.NoError(s.T(), CreateEntityRaw(s.Thing1Outer, db))
   // log.Printf("Thing2B: %s", s.Thing2B.GetID())
   s.Thing1GroupA = &Container{
     Entity:Entity{ResourceName: `containers`, Name:`Thing1GroupA`, OwnerID:s.User1.GetID()},
@@ -74,6 +82,12 @@ func (s *GrantIntegrationSuite) SetupSuite() {
     Members:[]*Entity{s.Thing1C},
   }
   require.NoError(s.T(), s.Thing1GroupC.CreateRaw(db))
+  // log.Printf("Thing2: %s", s.Thing2Group.GetID())
+  s.Thing1GroupOuter = &Container{
+    Entity:Entity{ResourceName: `containers`, Name:`Thing1GroupOuter`, OwnerID:s.User1.GetID()},
+    Members:[]*Entity{s.Thing1Outer, s.Thing1A, s.Thing1B, s.Thing1C, &s.Thing1GroupA.Entity, &s.Thing1GroupC.Entity},
+  }
+  require.NoError(s.T(), s.Thing1GroupOuter.CreateRaw(db))
   // log.Printf("Thing2: %s", s.Thing2Group.GetID())
 
   authID2 := strkit.RandString(strkit.LettersAndNumbers, 16)
@@ -154,4 +168,15 @@ func (s *GrantIntegrationSuite) TestCapabilityByDoubleIndirectGrant() {
   assert.Equal(s.T(), azns.JsonB(nil), CapResponse.GetCookie())
   assert.Equal(s.T(), false, CapResponse.IsByOwnership())
   assert.Equal(s.T(), true, CapResponse.IsByGrant())
+}
+
+func (s *GrantIntegrationSuite) TestNoCapabilityToOuterGroup() {
+  for _, target := range []EID{s.Thing1Outer.GetID(), s.Thing1GroupOuter.GetID()} {
+    CapResponse, err := azns.CheckCapability(s.User2.GetID(), azns.AznBasicUpdate.ID, target, rdb.Connect())
+    require.NoError(s.T(), err)
+    assert.Equal(s.T(), false, CapResponse.IsGranted())
+    assert.Equal(s.T(), azns.JsonB(nil), CapResponse.GetCookie())
+    assert.Equal(s.T(), false, CapResponse.IsByOwnership())
+    assert.Equal(s.T(), false, CapResponse.IsByGrant())
+  }
 }

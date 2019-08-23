@@ -1,5 +1,5 @@
 package items
-
+/*
 import (
   "context"
   "fmt"
@@ -143,3 +143,4 @@ func ArchiveItem(item *entities.Identifiable, accessRoute caps.AccessRoute, ctx 
   }
   return nil
 }
+*/

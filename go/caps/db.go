@@ -1,29 +1,12 @@
 package caps
-
+/*
 import (
   "context"
   "log"
 
   "github.com/go-pg/pg/orm"
   "github.com/Liquid-Labs/lc-authentication-api/go/auth"
-  "github.com/Liquid-Labs/terror/go/terror"
 )
-
-type AuthorizationResponse struct {
-  Granted bool
-  Cookie  interface{} // could be any JSON derived structure; string, int, float, map, or array.
-}
-
-func CheckAuthorization(subject interface{}, action string, target interface{}) (*AuthorizationResponse, terror.Terror) {
-  switch subject.(type) {
-  case string: // or entities.PublicID? Also could be AznID (which we should type...)
-    return nil, nil
-  case int64: // or entities.InternalID?
-    return nil, nil
-  default:
-    return nil, nil
-  }
-}
 
 func resolveAuthorization(authorization interface{}, query *orm.Query) *orm.Query {
   switch authorization.(type) {
@@ -40,7 +23,7 @@ func resolveAuthorization(authorization interface{}, query *orm.Query) *orm.Quer
   }
 }
 
-func AuthorizedModel(baseQuery *orm.Query, accessRoute /*azn.*/AccessRoute, authorization interface{}, ctx context.Context) *orm.Query {
+func AuthorizedModel(baseQuery *orm.Query, accessRoute /*azn * /AccessRoute, authorization interface{}, ctx context.Context) *orm.Query {
   if accessRoute == AccessPublic {
     return authorizedPublicModel(baseQuery, authorization)
   } else {
@@ -93,4 +76,4 @@ func authorizedGrantModel(q *orm.Query, authorization interface{}, ctx context.C
     Group(`entities.id`)
 
   return resolveAuthorization(authorization, query)
-}
+}*/

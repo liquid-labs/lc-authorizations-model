@@ -33,11 +33,12 @@
     ]
   },
   "dependencies": {
-    "@liquid-labs/lc-entities-model": "^1.0.0-alpha.0",
-    "@liquid-labs/lc-users-model": "file:.yalc/@liquid-labs/lc-users-model"
+    "@liquid-labs/lc-containers-model": "^1.0.0-alpha-0",
+    "@liquid-labs/lc-entities-model": "^1.0.0-alpha.1",
+    "@liquid-labs/lc-users-model": "^1.0.0-alpha.2"
   },
   "devDependencies": {
-    "@liquid-labs/catalyst-scripts": "^1.0.0-alpha.22",
+    "@liquid-labs/catalyst-scripts": "^1.0.0-alpha.24",
     "@liquid-labs/liquid-dev-cloudsql": "^1.0.0-prototype.0"
   }
 }

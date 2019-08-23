@@ -1,8 +1,9 @@
 CREATE TABLE grants (
-  id BIGINT,
-  subject BIGINT,
-  azn BIGINT NOT NULL,
-  target BIGINT,
+  id      BIGSERIAL,
+  subject UUID,
+  azn     INT NOT NULL,
+  target  UUID,
+  cookie  JSONB,
   -- cookies VARCHAR(128)[], -- e.g. : "LIMIT:10" on create, etc.
   CONSTRAINT grants_key PRIMARY KEY ( id ),
   CONSTRAINT grants_subject_refs_subjects FOREIGN KEY ( subject ) REFERENCES subjects ( id ),

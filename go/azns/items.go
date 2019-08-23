@@ -22,18 +22,6 @@ func newPager (pr PageRequest) urlvalues.Pager {
   return pager
 }
 
-func checkAuthentication(ctx context.Context) (string, Terror) {
-  authenticator := auth.GetAuthenticator(ctx)
-  if !authenticator.IsRequestAuthenticated() {
-    return ``, UnauthenticatedError(`Non-Authenticated user cannot requested 'owned' items.`)
-  }
-  authID := authenticator.GetAznID()
-  if authID == `` {
-    return ``, ServerError(`Missing authorization ID for authenticated user.`, nil)
-  }
-  return authID, nil
-}
-
 func prepQuery(q *orm.Query, pr PageRequest, ctx context.Context) {
   pager := newPager(pr)
 
@@ -49,7 +37,7 @@ func prepQuery(q *orm.Query, pr PageRequest, ctx context.Context) {
 //
 // or it may include additional filter clauses.
 func ListOwnedItems(q *orm.Query, pageRequest PageRequest, ctx context.Context) (int, Terror) {
-  authID, err := checkAuthentication(ctx)
+  _, authID, err := auth.CheckAuthentication(ctx)
   if err != nil { return 0, err }
 
   prepQuery(q, pageRequest, ctx)
@@ -65,7 +53,7 @@ func ListOwnedItems(q *orm.Query, pageRequest PageRequest, ctx context.Context) 
 }
 
 func ListSharedItemsQuery(model interface{}, db orm.DB, pageRequest PageRequest, ctx context.Context) (int, Terror) {
-  authID, terr := checkAuthentication(ctx)
+  _, authID, terr := auth.CheckAuthentication(ctx)
   if terr != nil { return 0, terr }
 
   tm := db.Model(model).GetModel().Table()

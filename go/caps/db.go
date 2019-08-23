@@ -1,5 +1,5 @@
 package caps
-
+/*
 import (
   "context"
   "log"
@@ -23,7 +23,7 @@ func resolveAuthorization(authorization interface{}, query *orm.Query) *orm.Quer
   }
 }
 
-func AuthorizedModel(baseQuery *orm.Query, accessRoute /*azn.*/AccessRoute, authorization interface{}, ctx context.Context) *orm.Query {
+func AuthorizedModel(baseQuery *orm.Query, accessRoute /*azn * /AccessRoute, authorization interface{}, ctx context.Context) *orm.Query {
   if accessRoute == AccessPublic {
     return authorizedPublicModel(baseQuery, authorization)
   } else {
@@ -76,4 +76,4 @@ func authorizedGrantModel(q *orm.Query, authorization interface{}, ctx context.C
     Group(`entities.id`)
 
   return resolveAuthorization(authorization, query)
-}
+}*/
